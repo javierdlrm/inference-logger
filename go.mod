@@ -1,4 +1,4 @@
-module github.com/javierdlrm/inference-adapter
+module github.com/javierdlrm/inference-logger
 
 go 1.14
 

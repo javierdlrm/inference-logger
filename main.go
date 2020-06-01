@@ -2,81 +2,75 @@ package main
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log"
-	"os"
-	"strings"
 
 	ce "github.com/cloudevents/sdk-go"
 	"github.com/cloudevents/sdk-go/pkg/binding"
 	"knative.dev/eventing/pkg/kncloudevents"
 )
 
-var (
-	kfkTopic   string = os.Getenv(KAFKA_TOPIC)
-	kfkBrokers string = os.Getenv(KAFKA_BROKERS)
-)
+var config *Config
 
-func checkConfig() error {
-	var vars []string
+func main() {
 
-	if kfkTopic == "" {
-		vars = append(vars, KAFKA_TOPIC)
-	}
-	if kfkBrokers == "" {
-		vars = append(vars, KAFKA_BROKERS)
+	var err error
+
+	// configuration
+	config, err = GetEnvConfig()
+	if err != nil {
+		log.Fatalf("Wrong configuration: %v", err)
+		return
 	}
 
-	if len(vars) > 0 {
-		return errors.New(fmt.Sprintf("Env vars must be set [%s]", strings.Join(vars, ", ")))
+	// cloudevents client
+	fmt.Println("Creating cloudevents default client")
+	c, err := kncloudevents.NewDefaultClient()
+	if err != nil {
+		log.Fatal("Failed to create client, ", err)
+	} else {
+		fmt.Println("Cloudevents default client created")
 	}
-	return nil
+
+	// start receiver
+	log.Fatal(c.StartReceiver(context.Background(), receive))
 }
 
 func receive(ev ce.Event) {
-	fmt.Println("[InferenceLogger] CloudEvent received from " + fmt.Sprintf("%v", ev.Extensions()[InferenceServiceName]))
+	inferenceServiceName := ev.Extensions()[InferenceServiceName].(string)
+	fmt.Println("CloudEvent received from " + inferenceServiceName)
+
+	// kafka connection
+	conn, err := GetKafkaConnection(config.KafkaBrokers)
+	if err != nil {
+		log.Fatalf("Cannot create Kafka client to servers [%s]: %v", config.KafkaBrokers, err.Error())
+		return
+	}
 
 	// enrich event
-	eev := enrichEvent(ev)
+	eev := EnrichEvent(ev)
 
-	// create kafka client
-	kfkClient := getKafkaClient(strings.Split(kfkBrokers, ","))
+	// ensure topic exists
+	config.EnsureKafkaTopicVar(inferenceServiceName)
+	if err := conn.EnsureTopic(config.KafkaTopic); err != nil {
+		log.Fatalf("Cannot create topic [%s]: %v", config.KafkaTopic, err.Error())
+		return
+	}
 
 	// create kafka producer
-	kfkProducer := getKafkaProducer(kfkClient, kfkTopic)
-
-	defer kfkProducer.Close(context.Background())
+	prod, err := conn.GetProducer(config.KafkaTopic)
+	if err != nil {
+		log.Fatalf("Cannot create Kafka producer with topic [%s]: %v", config.KafkaTopic, err.Error())
+		return
+	}
 
 	// get event binding
 	em := binding.EventMessage(eev)
 
 	// send event to kafka
-	if err := kfkProducer.Send(context.Background(), em); err != nil {
-		log.Fatalf("[InferenceLogger] Cannot produce kafka message [%s]: %v", ev.String(), err.Error())
-		fmt.Printf("[InferenceLogger] Cannot produce kafka message [%s]: %v", ev.String(), err.Error())
+	if err := prod.Send(context.Background(), em); err != nil {
+		log.Fatalf("Cannot produce kafka message [%s]: %v", ev.String(), err.Error())
 	} else {
-		fmt.Println("[InferenceLogger] Message sent")
+		fmt.Printf("Message from '%s' log into '%s'", inferenceServiceName, config.KafkaTopic)
 	}
-}
-
-func main() {
-
-	// check configuration
-	if err := checkConfig(); err != nil {
-		log.Fatalf("[InferenceLogger] Wrong configuration: %v", err)
-		fmt.Printf("[InferenceLogger] Wrong configuration: %v", err)
-	}
-
-	// create cloudevents client
-	fmt.Println("[InferenceLogger] Creating cloudevents default client")
-	c, err := kncloudevents.NewDefaultClient()
-	if err != nil {
-		log.Fatal("Failed to create client, ", err)
-	} else {
-		fmt.Println("[InferenceLogger] Cloudevents default client created")
-	}
-
-	// start receiver
-	log.Fatal(c.StartReceiver(context.Background(), receive))
 }

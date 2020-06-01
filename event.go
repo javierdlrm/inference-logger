@@ -7,7 +7,8 @@ import (
 	ce "github.com/cloudevents/sdk-go"
 )
 
-func enrichEvent(ev ce.Event) ce.Event {
+// EnrichEvent returns an enriched event ready to log into Kafka
+func EnrichEvent(ev ce.Event) ce.Event {
 
 	// inference type
 	ievtype := Request
@@ -27,7 +28,7 @@ func enrichEvent(ev ce.Event) ce.Event {
 	var dataMap map[string]interface{}
 	err := json.Unmarshal(data, &dataMap)
 	if err != nil {
-		fmt.Printf("[InferenceLogger] Error json.Unmarshal event data: %v", err)
+		fmt.Printf("Error json.Unmarshal event data: %v", err)
 	}
 
 	// inference event
@@ -39,7 +40,7 @@ func enrichEvent(ev ce.Event) ce.Event {
 	}
 	iev, err := json.Marshal(ievMap)
 	if err != nil {
-		fmt.Printf("[InferenceLogger] Error json.Marshal inference event map: %v", err)
+		fmt.Printf("Error json.Marshal inference event map: %v", err)
 	}
 
 	// replace data with new inference event
