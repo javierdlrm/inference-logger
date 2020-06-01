@@ -4,6 +4,13 @@ package main
 
 const KafkaTopicEnvVar string = "KAFKA_TOPIC"
 const KakfaBrokersEnvVar string = "KAFKA_BROKERS"
+const KafkaTopicPartitionsEnvVar string = "KAFKA_TOPIC_PARTITIONS"
+const KafkaTopicReplicationFactorEnvVar string = "KAFKA_TOPIC_REPLICATION_FACTOR"
+
+// Defaults
+
+const DefaultKafkaTopicPartitions = 1
+const DefaultKafkaTopicReplicationFactor = 1
 
 // CloudEvent attributes
 
@@ -20,11 +27,6 @@ const Namespace = "namespace"
 
 const Request = "request"
 const Response = "response"
-
-// Kafka Topic
-
-const DefaultPartitions = 1
-const DefaultReplicationFactor = 1
 
 // DefaultTopicName returns a default name for Kafka topics
 func DefaultTopicName(name string) string {

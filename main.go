@@ -41,7 +41,7 @@ func receive(ev ce.Event) {
 	fmt.Println("CloudEvent received from " + inferenceServiceName)
 
 	// kafka connection
-	conn, err := GetKafkaConnection(config.KafkaBrokers)
+	conn, err := GetKafkaConnection(config)
 	if err != nil {
 		log.Fatalf("Cannot create Kafka client to servers [%s]: %v", config.KafkaBrokers, err.Error())
 		return
@@ -52,7 +52,7 @@ func receive(ev ce.Event) {
 
 	// ensure topic exists
 	config.EnsureKafkaTopicVar(inferenceServiceName)
-	if err := conn.EnsureTopic(config.KafkaTopic); err != nil {
+	if err := conn.EnsureTopic(config); err != nil {
 		log.Fatalf("Cannot create topic [%s]: %v", config.KafkaTopic, err.Error())
 		return
 	}
@@ -72,6 +72,6 @@ func receive(ev ce.Event) {
 	if err := prod.Send(context.Background(), em); err != nil {
 		log.Fatalf("Cannot produce kafka message [%s]: %v", ev.String(), err.Error())
 	} else {
-		fmt.Printf("Message from '%s' log into '%s'", inferenceServiceName, config.KafkaTopic)
+		fmt.Printf("Message from %s logged into %s\n", inferenceServiceName, config.KafkaTopic)
 	}
 }

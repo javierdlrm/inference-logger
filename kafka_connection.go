@@ -17,16 +17,16 @@ type KafkaConnection struct {
 }
 
 // GetKafkaConnection returns a new KafkaConnection
-func GetKafkaConnection(brokers []string) (*KafkaConnection, error) {
+func GetKafkaConnection(c *Config) (*KafkaConnection, error) {
 	config := getKafkaConfig()
 
-	client, err := getKafkaClient(config, brokers)
+	client, err := getKafkaClient(config, c.KafkaBrokers)
 	if err != nil {
 		return nil, err
 	}
 
 	return &KafkaConnection{
-		Brokers: brokers,
+		Brokers: c.KafkaBrokers,
 		Config:  config,
 		Client:  client,
 	}, nil

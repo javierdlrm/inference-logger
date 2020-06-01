@@ -1,17 +1,19 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/Shopify/sarama"
 )
 
 // EnsureTopic ensures a given topic is created
-func (k *KafkaConnection) EnsureTopic(topic string) error {
+func (k *KafkaConnection) EnsureTopic(c *Config) error {
 
 	// check if already exists
 	topics, err := k.Client.Topics()
 	if err != nil {
 		return err
-	} else if contains(topics, topic) {
+	} else if contains(topics, c.KafkaTopic) {
 		return nil
 	}
 
@@ -20,8 +22,8 @@ func (k *KafkaConnection) EnsureTopic(topic string) error {
 	defer func() { _ = k.ClusterAdmin.Close() }()
 
 	detail := &sarama.TopicDetail{
-		NumPartitions:     DefaultPartitions,
-		ReplicationFactor: DefaultReplicationFactor,
+		NumPartitions:     c.KafkaTopicPartitions,
+		ReplicationFactor: c.KafkaTopicReplicationFactor,
 	}
-	return k.ClusterAdmin.CreateTopic(topic, detail, false)
+	return k.ClusterAdmin.CreateTopic(c.KafkaTopic, detail, false)
 }
