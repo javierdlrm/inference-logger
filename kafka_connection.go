@@ -62,7 +62,5 @@ func getKafkaClusterAdmin(config *sarama.Config, brokers []string) (sarama.Clust
 	if err != nil {
 		return nil, err
 	}
-
-	defer func() { _ = admin.Close() }()
 	return admin, nil
 }

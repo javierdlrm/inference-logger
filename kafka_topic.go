@@ -17,6 +17,7 @@ func (k *KafkaConnection) EnsureTopic(topic string) error {
 
 	// ensure cluster admin client initiated
 	k.EnsureClusterAdmin()
+	defer func() { _ = k.ClusterAdmin.Close() }()
 
 	detail := &sarama.TopicDetail{
 		NumPartitions:     DefaultPartitions,

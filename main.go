@@ -63,6 +63,7 @@ func receive(ev ce.Event) {
 		log.Fatalf("Cannot create Kafka producer with topic [%s]: %v", config.KafkaTopic, err.Error())
 		return
 	}
+	defer prod.Close(context.Background())
 
 	// get event binding
 	em := binding.EventMessage(eev)

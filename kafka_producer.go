@@ -1,8 +1,6 @@
 package main
 
 import (
-	"context"
-
 	"github.com/cloudevents/sdk-go/pkg/bindings/kafka_sarama"
 )
 
@@ -12,6 +10,5 @@ func (k *KafkaConnection) GetProducer(topic string) (kafka_sarama.Sender, error)
 	if err != nil {
 		return *prod, err
 	}
-	defer prod.Close(context.Background())
 	return *prod, nil
 }
