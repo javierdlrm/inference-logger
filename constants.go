@@ -9,8 +9,8 @@ const KafkaTopicReplicationFactorEnvVar string = "KAFKA_TOPIC_REPLICATION_FACTOR
 
 // Defaults
 
-const DefaultKafkaTopicPartitions = 1
-const DefaultKafkaTopicReplicationFactor = 1
+const DefaultKafkaTopicPartitions int32 = 1
+const DefaultKafkaTopicReplicationFactor int16 = 1
 
 // CloudEvent attributes
 

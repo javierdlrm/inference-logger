@@ -34,8 +34,8 @@ func GetEnvConfig() (*Config, error) {
 	return &Config{
 		KafkaBrokers:                brokers,
 		KafkaTopic:                  topic,
-		KafkaTopicPartitions:        int32(partitions),
-		KafkaTopicReplicationFactor: int16(replication),
+		KafkaTopicPartitions:        partitions,
+		KafkaTopicReplicationFactor: replication,
 	}, nil
 }
 
@@ -54,18 +54,27 @@ func getKafkaBrokers() ([]string, error) {
 	return strings.Split(brokers, ","), nil
 }
 
-func getKafkaTopicPartitions() (int, error) {
+func getKafkaTopicPartitions() (int32, error) {
 	str := os.Getenv(KafkaTopicPartitionsEnvVar)
+
 	if str == "" {
 		return DefaultKafkaTopicPartitions, nil
 	}
-	return strconv.Atoi(str)
+	i, err := strconv.Atoi(str)
+	if err != nil {
+		return 0, err
+	}
+	return int32(i), nil
 }
 
-func getKafkaTopicReplicationFactor() (int, error) {
+func getKafkaTopicReplicationFactor() (int16, error) {
 	str := os.Getenv(KafkaTopicReplicationFactorEnvVar)
 	if str == "" {
 		return DefaultKafkaTopicReplicationFactor, nil
 	}
-	return strconv.Atoi(str)
+	i, err := strconv.Atoi(str)
+	if err != nil {
+		return 0, err
+	}
+	return int16(i), nil
 }
