@@ -25,8 +25,8 @@ const InferenceServiceName = "inferenceservicename"
 const Endpoint = "endpoint"
 const Namespace = "namespace"
 
-const Request = "request"
-const Response = "response"
+const RequestType = "request"
+const ResponseType = "response"
 
 // DefaultTopicName returns a default name for Kafka topics
 func DefaultTopicName(name string) string {
